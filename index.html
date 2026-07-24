@@ -430,6 +430,24 @@
     font-variant-numeric: tabular-nums;
   }
   .pts-tag.earned{ color: var(--gold); background: var(--gold-soft); }
+  .prio-pill{
+    flex: none;
+    align-self: flex-start;
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .prio-pill.prio-high{ color: var(--coral); background: var(--coral-soft); border-color: rgba(168,85,247,0.3); }
+  .prio-pill.prio-medium{ color: var(--purple); background: var(--purple-soft); }
+  .prio-pill.prio-low{ color: var(--teal); background: var(--teal-soft); }
+  .prio-pill:hover{ filter: brightness(1.15); }
+  .prio-pill:focus-visible{ outline: 2px solid var(--purple); outline-offset: 2px; }
   .badge-nottoday{
     flex: none;
     font-size: 10.5px;
@@ -548,6 +566,18 @@
     cursor: pointer;
   }
   .pill-form .date-input:hover{ border-color: var(--faint); }
+  .pill-form .prio-select{
+    flex: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    padding: 10px 12px;
+    font-size: 12.5px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-form .prio-select:hover{ border-color: var(--faint); }
   @media (max-width: 560px){
     .pill-form{ flex-wrap: wrap; }
     .pill-form input[type="text"]{ flex: 1 1 100%; }
@@ -988,10 +1018,15 @@
         <h2>Today's tasks</h2>
         <span class="section-count" id="doing-count"></span>
       </div>
-      <p class="section-hint">Check one off to earn +10 pts.</p>
+      <p class="section-hint">Sorted by priority — high rises to the top. Complete one for +10 pts.</p>
       <div class="card-list" id="doing-list"></div>
       <form class="pill-form" id="doing-form">
         <input type="text" id="doing-input" placeholder="What's actually happening today?" autocomplete="off" maxlength="120" />
+        <select class="prio-select" id="doing-prio" aria-label="Priority" title="Priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
         <input type="date" class="date-input" id="doing-date" aria-label="Due date (optional)" title="Due date (optional)" />
         <button type="submit">Add</button>
       </form>
@@ -1109,6 +1144,37 @@
     chip.textContent = dueLabel(dueDate);
     return chip;
   }
+  /* Priorities: high > medium > low. Tasks sort by priority, done sinks. */
+  const PRIOS = ["high", "medium", "low"];
+  const PRIO_LABEL = { high: "High", medium: "Medium", low: "Low" };
+  function prioOf(item){ return PRIOS.includes(item.priority) ? item.priority : "medium"; }
+  function prioRank(item){ return PRIOS.indexOf(prioOf(item)); }
+  function prioColor(p){
+    return p === "high" ? "var(--coral)" : p === "low" ? "var(--teal)" : "var(--purple)";
+  }
+  function taskSort(a, b){
+    if(!!a.done !== !!b.done) return a.done ? 1 : -1;   // completed tasks sink
+    const pr = prioRank(a) - prioRank(b);                // then by priority
+    if(pr !== 0) return pr;
+    return (a.createdAt || 0) - (b.createdAt || 0);      // then oldest first
+  }
+  function makePrioPill(item, onChange){
+    const p = prioOf(item);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "prio-pill prio-" + p;
+    btn.textContent = PRIO_LABEL[p];
+    btn.title = "Priority: " + PRIO_LABEL[p] + " — click to change";
+    btn.setAttribute("aria-label", "Priority " + PRIO_LABEL[p] + ", click to change");
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const next = PRIOS[(PRIOS.indexOf(p) + 1) % PRIOS.length];
+      item.priority = next;
+      onChange();
+    });
+    return btn;
+  }
+
   /* Anything set aside that is due today or overdue belongs in Today's tasks. */
   function autoPromoteDue(day){
     let moved = 0;
@@ -1120,7 +1186,7 @@
       day.notDoing = day.notDoing.filter(i => i.id !== item.id);
       day.doing.push({
         id: uid(), text: item.text, done: false, createdAt: Date.now(),
-        dueDate: item.dueDate, fromNotDoing: true, pickupAwarded: item.pickupAwarded, autoMoved: true
+        dueDate: item.dueDate, priority: prioOf(item), fromNotDoing: true, pickupAwarded: item.pickupAwarded, autoMoved: true
       });
       moved++;
     });
@@ -1218,16 +1284,16 @@
     const day = currentDay();
 
     doingList.innerHTML = "";
-    const visibleDoing = day.doing.filter(i => matchesFilter(i.text));
+    const visibleDoing = day.doing.filter(i => matchesFilter(i.text)).sort(taskSort);
     if(day.doing.length === 0){
       doingList.innerHTML = '<p class="empty-note">Nothing here yet. Add what\'s actually happening today.</p>';
     } else if(visibleDoing.length === 0){
       doingList.innerHTML = '<p class="empty-note">No matches for that search.</p>';
     } else {
-      visibleDoing.forEach((item, idx) => {
+      visibleDoing.forEach((item) => {
         const card = document.createElement("div");
         card.className = "item-card";
-        card.style.setProperty("--accent", item.fromNotDoing ? "var(--teal)" : ACCENTS[idx % ACCENTS.length]);
+        card.style.setProperty("--accent", prioColor(item.priority));
 
         const check = document.createElement("input");
         check.type = "checkbox";
@@ -1255,6 +1321,8 @@
         main.appendChild(text);
         main.appendChild(meta);
 
+        const prio = makePrioPill(item, () => { save(); render(); });
+
         const pts = document.createElement("span");
         pts.className = "pts-tag" + (item.done ? " earned" : "");
         pts.textContent = item.done ? "+" + PTS_COMPLETE + " earned" : "+" + PTS_COMPLETE + " pts";
@@ -1273,6 +1341,7 @@
 
         card.appendChild(check);
         card.appendChild(main);
+        card.appendChild(prio);
         card.appendChild(pts);
         card.appendChild(menuWrap);
         doingList.appendChild(card);
@@ -1316,7 +1385,7 @@
           }
           day.doing.push({
             id: uid(), text: item.text, done: false, createdAt: Date.now(),
-            dueDate: item.dueDate, fromNotDoing: true, pickupAwarded: true
+            dueDate: item.dueDate, priority: prioOf(item), fromNotDoing: true, pickupAwarded: true
           });
           maybeAwardBonus();
           save(); render();
@@ -1403,12 +1472,13 @@
 
   document.addEventListener("click", () => { if(openMenuId !== null){ openMenuId = null; render(); } });
 
-  function addRelease(text, carryFrom, dueDate){
+  function addRelease(text, carryFrom, dueDate, priority){
     const day = currentDay();
     const note = AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)];
     day.notDoing.push({
       id: uid(), text, note,
       dueDate: carryFrom ? carryFrom.dueDate : (dueDate || null),
+      priority: carryFrom ? prioOf(carryFrom) : (priority || "medium"),
       pickupAwarded: carryFrom ? !!carryFrom.pickupAwarded : false
     });
     save(); render();
@@ -1418,14 +1488,17 @@
     e.preventDefault();
     const input = document.getElementById("doing-input");
     const dateInput = document.getElementById("doing-date");
+    const prioInput = document.getElementById("doing-prio");
     const val = input.value.trim();
     if(!val) return;
     currentDay().doing.push({
       id: uid(), text: val, done: false, createdAt: Date.now(),
-      dueDate: dateInput.value || null
+      dueDate: dateInput.value || null,
+      priority: prioInput.value || "medium"
     });
     input.value = "";
     dateInput.value = "";
+    prioInput.value = "medium";
     save(); render();
   });
 
@@ -1443,7 +1516,7 @@
     if(s === "today" || s === "overdue"){
       currentDay().doing.push({
         id: uid(), text: val, done: false, createdAt: Date.now(),
-        dueDate: due, autoMoved: true
+        dueDate: due, priority: "medium", autoMoved: true
       });
       save(); render();
       return;
@@ -1642,6 +1715,7 @@
         text: i.text,
         note: "Carried over from yesterday.",
         dueDate: i.dueDate || null,
+        priority: prioOf(i),
         pickupAwarded: false,
         carried: true
       });
@@ -1712,7 +1786,7 @@
       day.pickupPoints += PTS_PICKUP;
       day.doing.push({
         id: uid(), text: item.text, done: false, createdAt: Date.now(),
-        dueDate: item.dueDate, fromNotDoing: true, pickupAwarded: true
+        dueDate: item.dueDate, priority: prioOf(item), fromNotDoing: true, pickupAwarded: true
       });
     });
     plannerOverlay.hidden = true;
