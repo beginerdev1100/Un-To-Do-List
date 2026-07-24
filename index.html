@@ -1158,6 +1158,61 @@
     if(pr !== 0) return pr;
     return (a.createdAt || 0) - (b.createdAt || 0);      // then oldest first
   }
+  /* Overcommitment nudge: when the plate is full of urgent high-priority work,
+     offer to set the non-urgent low-priority tasks aside so they don't distract. */
+  const FOCUS_MIN_URGENT = 3;   // this many urgent high-priority tasks…
+  const FOCUS_MIN_LOW = 2;      // …alongside this many parkable low-priority ones triggers the nudge
+  let focusSuggestOpen = false;
+
+  function daysBetween(a, b){
+    const da = new Date(a + "T00:00:00"), db = new Date(b + "T00:00:00");
+    return Math.round((db - da) / 86400000);
+  }
+  function daysUntilDue(dueDate){
+    if(!dueDate) return null;
+    return daysBetween(todayStr(), dueDate);
+  }
+  function isSoonDue(dueDate){
+    const d = daysUntilDue(dueDate);
+    return d !== null && d <= 2;   // overdue, today, or within two days
+  }
+  function focusSets(day){
+    const urgentHigh = day.doing.filter(i => !i.done && prioOf(i) === "high" && isSoonDue(i.dueDate));
+    const parkableLow = day.doing.filter(i => !i.done && prioOf(i) === "low" && !isSoonDue(i.dueDate));
+    return { urgentHigh, parkableLow };
+  }
+  async function checkFocusSuggestion(){
+    const day = currentDay();
+    if(day.focusDismissed || focusSuggestOpen) return;
+    const { urgentHigh, parkableLow } = focusSets(day);
+    if(urgentHigh.length < FOCUS_MIN_URGENT || parkableLow.length < FOCUS_MIN_LOW) return;
+
+    focusSuggestOpen = true;
+    const n = parkableLow.length;
+    const ok = await askConfirm(
+      "Focus on what's urgent?",
+      "You've got " + urgentHigh.length + " high-priority tasks due soon and " + n +
+      " low-priority " + (n === 1 ? "one" : "ones") + " that can wait. Move the low-priority " +
+      (n === 1 ? "task" : "tasks") + " to Not doing today so you can focus?",
+      "Set " + n + " aside"
+    );
+    focusSuggestOpen = false;
+
+    if(ok){
+      const ids = new Set(parkableLow.map(i => i.id));
+      day.doing = day.doing.filter(i => !ids.has(i.id));
+      parkableLow.forEach(i => {
+        day.notDoing.push({
+          id: uid(), text: i.text, note: "Set aside so you can focus on what's urgent.",
+          dueDate: i.dueDate || null, priority: prioOf(i), pickupAwarded: false
+        });
+      });
+    } else {
+      day.focusDismissed = true;   // don't nag again today
+    }
+    save(); render();
+  }
+
   function makePrioPill(item, onChange){
     const p = prioOf(item);
     const btn = document.createElement("button");
@@ -1321,7 +1376,7 @@
         main.appendChild(text);
         main.appendChild(meta);
 
-        const prio = makePrioPill(item, () => { save(); render(); });
+        const prio = makePrioPill(item, () => { save(); render(); checkFocusSuggestion(); });
 
         const pts = document.createElement("span");
         pts.className = "pts-tag" + (item.done ? " earned" : "");
@@ -1500,6 +1555,7 @@
     dateInput.value = "";
     prioInput.value = "medium";
     save(); render();
+    checkFocusSuggestion();
   });
 
   document.getElementById("notdoing-form").addEventListener("submit", e => {
