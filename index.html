@@ -1,0 +1,1778 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To-Do — The Un-To-Do List</title>
+<style>
+  /* Deliberately single-theme: a committed dark UI. */
+  :root{
+    --bg: #17131F;
+    --bg-glow: #1E1830;
+    --surface: #221C31;
+    --surface-2: #2B2440;
+    --surface-3: #352D4E;
+    --ink: #F2EFF9;
+    --muted: #9C92B8;
+    --faint: #6E6488;
+    --purple: #A78BFA;
+    --purple-deep: #7C5CD1;
+    --purple-soft: rgba(167,139,250,0.14);
+    --coral: #F2705B;
+    --coral-soft: rgba(242,112,91,0.14);
+    --teal: #3ECFC9;
+    --teal-soft: rgba(62,207,201,0.13);
+    --gold: #E9B44C;
+    --gold-soft: rgba(233,180,76,0.13);
+    --ring-track: rgba(255,255,255,0.08);
+    --line: rgba(255,255,255,0.07);
+    --shadow: rgba(0,0,0,0.45);
+    --backdrop: rgba(8,6,14,0.72);
+    color-scheme: dark;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 900px 600px at 12% -5%, var(--bg-glow), transparent 60%),
+      radial-gradient(ellipse 800px 550px at 95% 105%, #1C1428, transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: hidden;
+    padding: 44px 32px 64px;
+  }
+  body::before, body::after{
+    content: "";
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border: 1px solid rgba(167,139,250,0.09);
+    border-radius: 36px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before{ top: -100px; left: -120px; transform: rotate(22deg); }
+  body::after{ bottom: -110px; right: -100px; transform: rotate(-16deg); }
+
+  .shell{
+    position: relative;
+    z-index: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header bar ---------- */
+  .header-bar{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .brand-eyebrow{
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--purple);
+    text-transform: uppercase;
+  }
+  .greeting{
+    font-size: 30px;
+    font-weight: 750;
+    margin: 6px 0 4px;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .sub-date{
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .task-count{
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--purple);
+    margin-top: 5px;
+  }
+  .header-right{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .receipt-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--coral);
+    border: none;
+    border-radius: 999px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 12px 22px;
+    cursor: pointer;
+  }
+  .receipt-btn:hover{ opacity: 0.92; }
+  .receipt-btn svg{ width: 17px; height: 17px; }
+  .avatar{
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--purple-deep), var(--coral));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .avatar svg{ width: 21px; height: 21px; stroke: #fff; }
+
+  /* ---------- Points banner ---------- */
+  .points-banner{
+    background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+  }
+  .points-main{ min-width: 150px; }
+  .points-value{
+    font-size: 34px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .points-value .pts-unit{
+    font-size: 15px;
+    font-weight: 650;
+    color: var(--muted);
+    margin-left: 5px;
+  }
+  .points-caption{
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 7px;
+  }
+  .goal-chip{
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 650;
+    font-family: inherit;
+    padding: 7px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+  }
+  .goal-chip:hover{ color: var(--ink); border-color: var(--faint); }
+  .goal-chip svg{ width: 12px; height: 12px; }
+  .goal-edit{
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .goal-edit.open{ display: inline-flex; }
+  .goal-edit input{
+    width: 80px;
+    background: var(--surface);
+    border: 1px solid var(--faint);
+    border-radius: 999px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    padding: 7px 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .goal-edit button{
+    background: var(--purple-deep);
+    border: none;
+    border-radius: 999px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .ring-wrap{
+    position: relative;
+    width: 92px;
+    height: 92px;
+    flex: none;
+  }
+  .ring-wrap svg{ width: 92px; height: 92px; }
+  .ring-track{ stroke: var(--ring-track); }
+  .ring-fill{
+    stroke: var(--purple);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+  }
+  .ring-fill.goal-met{ stroke: var(--gold); }
+  .ring-label{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+  }
+  .ring-label .big{ font-size: 20px; font-weight: 800; }
+  .ring-label .small{ font-size: 11px; font-weight: 650; color: var(--muted); }
+
+  .rules-list{
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rule-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .rule-pts{
+    flex: none;
+    width: 44px;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 0;
+    border-radius: 999px;
+  }
+  .rule-pts.p10{ color: var(--purple); background: var(--purple-soft); }
+  .rule-pts.p5{ color: var(--teal); background: var(--teal-soft); }
+  .rule-pts.p20{ color: var(--gold); background: var(--gold-soft); }
+  .rule-row.bonus-done{ color: var(--gold); font-weight: 650; }
+
+  /* ---------- Search ---------- */
+  .search-row{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 26px;
+    max-width: 520px;
+  }
+  .search-row input{
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface-2);
+    color: var(--ink);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .search-row input::placeholder{ color: var(--faint); }
+  .search-btn{
+    flex: none;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    border: none;
+    background: var(--surface-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .search-btn:hover{ color: var(--ink); }
+  .search-btn svg{ width: 18px; height: 18px; }
+
+  /* ---------- Two-column desk ---------- */
+  .desk{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 860px){
+    .desk{ grid-template-columns: 1fr; }
+  }
+
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 22px 22px 18px;
+    box-shadow: 0 24px 60px var(--shadow);
+  }
+  .section-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .section-head h2{
+    font-size: 17px;
+    font-weight: 750;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .section-count{
+    font-size: 12.5px;
+    font-weight: 650;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .section-hint{
+    font-size: 12.5px;
+    color: var(--faint);
+    margin: 0 0 14px;
+  }
+
+  /* ---------- Item cards ---------- */
+  .card-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 8px;
+  }
+  .empty-note{
+    color: var(--faint);
+    font-size: 13px;
+    padding: 4px 2px 8px;
+    margin: 0;
+  }
+  .item-card{
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 13px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: pop-in 0.22s ease;
+    position: relative;
+  }
+  .item-card::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent, var(--purple));
+  }
+  @keyframes pop-in{
+    from{ opacity: 0; transform: translateY(-4px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+  .item-check{
+    width: 18px; height: 18px;
+    margin-top: 2px;
+    accent-color: var(--purple);
+    flex: none;
+    cursor: pointer;
+  }
+  .item-main{ flex: 1; min-width: 0; }
+  .item-text{
+    margin: 0 0 3px;
+    font-size: 14px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+  .item-text.done{
+    text-decoration: line-through;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .item-meta{
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--faint);
+  }
+  .item-meta.italic{ font-style: italic; color: var(--muted); }
+  .pts-tag{
+    flex: none;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    color: var(--teal);
+    background: var(--teal-soft);
+    padding: 4px 9px;
+    border-radius: 999px;
+    align-self: flex-start;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .pts-tag.earned{ color: var(--gold); background: var(--gold-soft); }
+  .badge-nottoday{
+    flex: none;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    color: var(--coral);
+    background: var(--coral-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    align-self: flex-start;
+    white-space: nowrap;
+  }
+  .ready-btn{
+    flex: none;
+    align-self: center;
+    background: var(--teal-soft);
+    border: none;
+    border-radius: 999px;
+    color: var(--teal);
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 750;
+    padding: 7px 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ready-btn:hover{ background: var(--teal); color: #10241F; }
+
+  .item-menu-wrap{ position: relative; flex: none; }
+  .kebab-btn{
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--faint);
+    padding: 4px 2px;
+    display: flex;
+    border-radius: 8px;
+  }
+  .kebab-btn svg{ width: 18px; height: 18px; }
+  .kebab-btn:hover{ color: var(--ink); }
+  .kebab-menu{
+    position: absolute;
+    right: 0;
+    top: 26px;
+    background: var(--surface-3);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 14px 36px var(--shadow);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    min-width: 188px;
+    z-index: 6;
+  }
+  .kebab-menu[hidden]{ display: none; }
+  .kebab-menu button{
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    padding: 9px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .kebab-menu button:hover{ background: var(--purple-soft); }
+  .kebab-menu button.danger:hover{ background: var(--coral-soft); color: var(--coral); }
+
+  button:focus-visible, input:focus-visible{
+    outline: 2px solid var(--purple);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Add forms ---------- */
+  .pill-form{
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .pill-form input{
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink);
+    padding: 11px 16px;
+    font-size: 13.5px;
+    font-family: inherit;
+  }
+  .pill-form input::placeholder{ color: var(--faint); }
+  .pill-form button{
+    flex: none;
+    border: none;
+    border-radius: 999px;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #fff;
+    background: var(--purple-deep);
+    cursor: pointer;
+  }
+  .pill-form button:hover{ opacity: 0.9; }
+  .pill-form-coral button{ background: var(--coral); }
+  .pill-form .date-input{
+    flex: none;
+    width: 128px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    padding: 10px 12px;
+    font-size: 12.5px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-form .date-input:hover{ border-color: var(--faint); }
+  @media (max-width: 560px){
+    .pill-form{ flex-wrap: wrap; }
+    .pill-form input[type="text"]{ flex: 1 1 100%; }
+  }
+
+  .due-chip{
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+    white-space: nowrap;
+    vertical-align: 1px;
+  }
+  .due-chip.future{ color: var(--teal); background: var(--teal-soft); }
+  .due-chip.today{ color: var(--gold); background: var(--gold-soft); }
+  .due-chip.overdue{ color: var(--coral); background: var(--coral-soft); }
+
+  /* ---------- Receipt overlay ---------- */
+  .receipt-overlay{
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 10;
+  }
+  .receipt-overlay[hidden]{ display: none; }
+  .receipt-wrap{
+    max-height: 90vh;
+    overflow-y: auto;
+    max-width: 400px;
+    width: 100%;
+  }
+  .receipt{
+    background: linear-gradient(165deg, var(--surface-3), var(--surface));
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    color: var(--ink);
+    padding: 26px 26px 22px;
+    box-shadow: 0 32px 80px var(--shadow);
+  }
+  .receipt .r-eyebrow{
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--purple);
+  }
+  .receipt .r-date{
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .receipt .r-total{
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 16px 0 8px;
+  }
+  .receipt .r-total .num{
+    font-size: 42px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .receipt .r-total .num.goal-met{ color: var(--gold); }
+  .receipt .r-total .of{
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--muted);
+  }
+  .receipt .r-bar{
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ring-track);
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .receipt .r-bar .fill{
+    height: 100%;
+    border-radius: 999px;
+    background: var(--purple);
+    transition: width 0.4s ease;
+  }
+  .receipt .r-bar .fill.goal-met{ background: var(--gold); }
+  .receipt .r-bonus-note{
+    font-size: 12.5px;
+    font-weight: 650;
+    color: var(--gold);
+    margin: 0 0 4px;
+  }
+  .receipt .r-divider{
+    border: none;
+    border-top: 1px dashed rgba(255,255,255,0.14);
+    margin: 16px 0 12px;
+  }
+  .receipt .r-section-title{
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 8px;
+  }
+  .receipt .line{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13.5px;
+    padding: 5px 0;
+  }
+  .receipt .line .t{ min-width: 0; word-break: break-word; }
+  .receipt .line .t.done-text{ color: var(--muted); text-decoration: line-through; }
+  .receipt .line .chip{
+    flex: none;
+    font-size: 10.5px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .receipt .chip.c-earn{ color: var(--gold); background: var(--gold-soft); }
+  .receipt .chip.c-open{ color: var(--muted); background: rgba(255,255,255,0.06); }
+  .receipt .chip.c-aside{ color: var(--coral); background: var(--coral-soft); }
+  .receipt .r-empty{
+    font-size: 13px;
+    color: var(--faint);
+    padding: 2px 0 4px;
+  }
+  .receipt .totals .line{ font-weight: 650; font-size: 13px; }
+  .receipt .totals .line .v{
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .receipt .totals .line.grand{
+    font-weight: 800;
+    font-size: 15px;
+  }
+  .receipt .totals .line.grand .v{ color: var(--ink); }
+  .receipt .totals .line.bonus-line .v{ color: var(--gold); }
+  .receipt .thanks{
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--muted);
+  }
+  .receipt-actions{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .receipt-actions button{
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: none;
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+  .receipt-actions button:hover{ background: #fff; color: #17131F; border-color: #fff; }
+  .receipt-actions .next-day-btn{
+    border: none;
+    background: var(--gold);
+    color: #17131F;
+  }
+  .receipt-actions .next-day-btn:hover{ opacity: 0.9; background: var(--gold); color: #17131F; }
+
+  /* ---------- Morning planner overlay ---------- */
+  .planner-overlay{
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 11;
+  }
+  .planner-overlay[hidden]{ display: none; }
+  .planner-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 32px 80px var(--shadow);
+    max-width: 460px;
+    width: 100%;
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 26px 26px 22px;
+  }
+  .planner-card h3{
+    margin: 0 0 6px;
+    font-size: 19px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+  }
+  .planner-card .planner-sub{
+    margin: 0 0 18px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .planner-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .planner-item{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+  .planner-item:hover{ border-color: var(--faint); }
+  .planner-item input{
+    width: 18px; height: 18px;
+    margin-top: 1px;
+    accent-color: var(--teal);
+    flex: none;
+    cursor: pointer;
+  }
+  .planner-item .p-text{
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .planner-item .p-carried{
+    display: block;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--faint);
+    margin-top: 2px;
+  }
+  .planner-item .p-pts{
+    flex: none;
+    font-size: 10.5px;
+    font-weight: 750;
+    color: var(--teal);
+    background: var(--teal-soft);
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .planner-actions{
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .planner-actions .skip-btn{
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    padding: 11px 20px;
+    cursor: pointer;
+  }
+  .planner-actions .skip-btn:hover{ color: var(--ink); border-color: var(--faint); }
+  .planner-actions .confirm-btn{
+    background: var(--purple-deep);
+    border: none;
+    border-radius: 999px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 22px;
+    cursor: pointer;
+  }
+  .planner-actions .confirm-btn:hover{ opacity: 0.9; }
+
+  /* ---------- Confirm dialog ---------- */
+  .confirm-overlay{
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 12;
+  }
+  .confirm-overlay[hidden]{ display: none; }
+  .confirm-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 32px 80px var(--shadow);
+    max-width: 400px;
+    width: 100%;
+    padding: 24px 26px 20px;
+  }
+  .confirm-card h3{
+    margin: 0 0 8px;
+    font-size: 17px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+  }
+  .confirm-card p{
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .confirm-buttons{
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .confirm-buttons .c-cancel{
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    padding: 11px 20px;
+    cursor: pointer;
+  }
+  .confirm-buttons .c-cancel:hover{ color: var(--ink); border-color: var(--faint); }
+  .confirm-buttons .c-yes{
+    background: var(--gold);
+    border: none;
+    border-radius: 999px;
+    color: #17131F;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 22px;
+    cursor: pointer;
+  }
+  .confirm-buttons .c-yes:hover{ opacity: 0.9; }
+
+  .tool-btn{
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 650;
+    padding: 10px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tool-btn:hover{ color: var(--ink); border-color: var(--faint); }
+  .tool-btn[hidden]{ display: none; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="shell">
+  <header class="header-bar">
+    <div>
+      <div class="brand-eyebrow">To-Do</div>
+      <h1 class="greeting" id="greeting"></h1>
+      <div class="sub-date" id="today-date"></div>
+      <div class="task-count" id="task-count"></div>
+    </div>
+    <div class="header-right">
+      <button class="tool-btn" id="export-btn" type="button" title="Save your data as a file to move it to another device">Export</button>
+      <button class="tool-btn" id="import-btn" type="button" title="Load a previously exported backup file">Import</button>
+      <input type="file" id="import-file" accept=".json,application/json" hidden />
+      <button class="receipt-btn" id="nav-receipt" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v17l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Today's receipt
+      </button>
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="points-banner">
+    <div class="points-main">
+      <div class="points-value"><span id="points-num">0</span><span class="pts-unit">pts</span></div>
+      <div class="points-caption" id="points-caption">Points earned today</div>
+      <button class="goal-chip" id="goal-chip" type="button" aria-label="Change daily goal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
+        Goal: <span id="goal-display">50</span> pts
+      </button>
+      <span class="goal-edit" id="goal-edit">
+        <input type="number" id="goal-input" min="10" step="10" aria-label="Daily points goal" />
+        <button type="button" id="goal-save">Save</button>
+      </span>
+    </div>
+    <div class="ring-wrap" aria-hidden="true">
+      <svg viewBox="0 0 92 92">
+        <circle class="ring-track" cx="46" cy="46" r="38" fill="none" stroke-width="7"/>
+        <circle class="ring-fill" id="ring-fill" cx="46" cy="46" r="38" fill="none" stroke-width="7" transform="rotate(-90 46 46)"/>
+      </svg>
+      <span class="ring-label">
+        <span class="big" id="ring-big">0</span>
+        <span class="small" id="ring-small">of 50</span>
+      </span>
+    </div>
+    <div class="rules-list">
+      <div class="rule-row"><span class="rule-pts p10">+10</span> Complete a task</div>
+      <div class="rule-row"><span class="rule-pts p5">+5</span> Pick a task back up from "Not doing today"</div>
+      <div class="rule-row" id="bonus-rule"><span class="rule-pts p20">+20</span> Clean sweep — complete everything, including every task you'd set aside</div>
+    </div>
+  </div>
+
+  <div class="search-row">
+    <input id="filter-input" type="text" placeholder="Search your lists" autocomplete="off" />
+    <button class="search-btn" id="filter-btn" type="button" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <main class="desk">
+    <section class="panel" id="doing-section">
+      <div class="section-head">
+        <h2>Today's tasks</h2>
+        <span class="section-count" id="doing-count"></span>
+      </div>
+      <p class="section-hint">Check one off to earn +10 pts.</p>
+      <div class="card-list" id="doing-list"></div>
+      <form class="pill-form" id="doing-form">
+        <input type="text" id="doing-input" placeholder="What's actually happening today?" autocomplete="off" maxlength="120" />
+        <input type="date" class="date-input" id="doing-date" aria-label="Due date (optional)" title="Due date (optional)" />
+        <button type="submit">Add</button>
+      </form>
+    </section>
+
+    <section class="panel" id="notdoing-section">
+      <div class="section-head">
+        <h2>Not doing today</h2>
+        <span class="section-count" id="notdoing-count"></span>
+      </div>
+      <p class="section-hint">Set things aside guilt-free. When you're ready, pull one back for +5 pts.</p>
+      <div class="card-list" id="notdoing-stack"></div>
+      <form class="pill-form pill-form-coral" id="notdoing-form">
+        <input type="text" id="notdoing-input" placeholder="What are you setting aside?" autocomplete="off" maxlength="120" />
+        <input type="date" class="date-input" id="notdoing-date" aria-label="Due date (optional)" title="Due date (optional)" />
+        <button type="submit">Set aside</button>
+      </form>
+    </section>
+  </main>
+</div>
+
+<div class="receipt-overlay" id="receipt-overlay" hidden>
+  <div class="receipt-wrap">
+    <div class="receipt" id="receipt-content"></div>
+    <div class="receipt-actions">
+      <button type="button" id="copy-receipt">Copy as text</button>
+      <button type="button" id="close-receipt">Close</button>
+    </div>
+    <div class="receipt-actions">
+      <button type="button" class="next-day-btn" id="next-day">Next day &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirm-overlay" hidden>
+  <div class="confirm-card">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-message"></p>
+    <div class="confirm-buttons">
+      <button type="button" class="c-cancel" id="confirm-cancel">Cancel</button>
+      <button type="button" class="c-yes" id="confirm-yes">Yes, continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="planner-overlay" id="planner-overlay" hidden>
+  <div class="planner-card">
+    <h3>Plan the new day</h3>
+    <p class="planner-sub" id="planner-sub">Want to move any of these into Today's tasks? Pick the ones you're ready for.</p>
+    <div class="planner-list" id="planner-list"></div>
+    <div class="planner-actions">
+      <button type="button" class="skip-btn" id="planner-skip">Leave them for now</button>
+      <button type="button" class="confirm-btn" id="planner-confirm">Add selected</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "untodo:v3";
+  const LEGACY_KEYS = ["untodo:v2", "untodo:v1"];
+  const PTS_COMPLETE = 10;
+  const PTS_PICKUP = 5;
+  const PTS_BONUS = 20;
+  const DEFAULT_GOAL = 50;
+  const AFFIRMATIONS = [
+    "It'll still be there when you're ready.",
+    "Rest is not a debt you owe.",
+    "Not everything needs your hands today.",
+    "This is a choice, not a failure.",
+    "Permission granted.",
+    "Some things can wait. This is one.",
+    "You get to decide what today is for.",
+    "Later is a valid answer.",
+    "Nothing bad happens.",
+    "You already did enough."
+  ];
+  const ACCENTS = ["var(--purple)", "var(--coral)", "var(--teal)"];
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 38;
+
+  function todayStr(d){
+    d = d || new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function uid(){ return Math.random().toString(36).slice(2, 9); }
+  function relTime(ts){
+    if(!ts) return "earlier today";
+    const mins = Math.round((Date.now() - ts) / 60000);
+    if(mins < 1) return "just now";
+    if(mins < 60) return mins + "m ago";
+    return Math.round(mins/60) + "h ago";
+  }
+  function escapeHtml(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function dueStatus(dueDate){
+    if(!dueDate) return null;
+    const t = todayStr();
+    if(dueDate < t) return "overdue";
+    if(dueDate === t) return "today";
+    return "future";
+  }
+  function dueLabel(dueDate){
+    const status = dueStatus(dueDate);
+    if(status === "overdue") return "overdue";
+    if(status === "today") return "due today";
+    const d = new Date(dueDate + "T00:00:00");
+    return "due " + d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+  function makeDueChip(dueDate){
+    const status = dueStatus(dueDate);
+    if(!status) return null;
+    const chip = document.createElement("span");
+    chip.className = "due-chip " + status;
+    chip.textContent = dueLabel(dueDate);
+    return chip;
+  }
+  /* Anything set aside that is due today or overdue belongs in Today's tasks. */
+  function autoPromoteDue(day){
+    let moved = 0;
+    const dueNow = day.notDoing.filter(i => {
+      const s = dueStatus(i.dueDate);
+      return s === "today" || s === "overdue";
+    });
+    dueNow.forEach(item => {
+      day.notDoing = day.notDoing.filter(i => i.id !== item.id);
+      day.doing.push({
+        id: uid(), text: item.text, done: false, createdAt: Date.now(),
+        dueDate: item.dueDate, fromNotDoing: true, pickupAwarded: item.pickupAwarded, autoMoved: true
+      });
+      moved++;
+    });
+    return moved;
+  }
+
+  function loadState(){
+    let s;
+    try{ s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch(e){ s = null; }
+    if(!s){
+      let legacy = null;
+      for(const k of LEGACY_KEYS){
+        try{ legacy = JSON.parse(localStorage.getItem(k) || "null"); } catch(e){ legacy = null; }
+        if(legacy) break;
+      }
+      if(legacy){
+        s = {
+          goal: legacy.goal ? legacy.goal : DEFAULT_GOAL,
+          days: legacy.days ? legacy.days : {}
+        };
+      }
+    }
+    if(!s) s = { goal: DEFAULT_GOAL, days: {} };
+    if(!s.goal || s.goal < 1) s.goal = DEFAULT_GOAL;
+    const today = todayStr();
+    if(!s.days[today]) s.days[today] = { doing: [], notDoing: [] };
+    const day = s.days[today];
+    if(typeof day.pickupPoints !== "number") day.pickupPoints = 0;
+    if(typeof day.bonusAwarded !== "boolean") day.bonusAwarded = false;
+    return s;
+  }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  let state = loadState();
+  const today = todayStr();
+  let filterQuery = "";
+  let openMenuId = null;
+
+  // Pull anything due (or overdue) out of the set-aside list on load.
+  if(autoPromoteDue(state.days[today]) > 0){
+    save();
+  }
+
+  const doingList = document.getElementById("doing-list");
+  const notdoingStack = document.getElementById("notdoing-stack");
+  const dateEl = document.getElementById("today-date");
+  const greetingEl = document.getElementById("greeting");
+  const taskCountEl = document.getElementById("task-count");
+  const pointsNum = document.getElementById("points-num");
+  const pointsCaption = document.getElementById("points-caption");
+  const goalDisplay = document.getElementById("goal-display");
+  const goalChip = document.getElementById("goal-chip");
+  const goalEdit = document.getElementById("goal-edit");
+  const goalInput = document.getElementById("goal-input");
+  const ringFill = document.getElementById("ring-fill");
+  const ringBig = document.getElementById("ring-big");
+  const ringSmall = document.getElementById("ring-small");
+  const doingCount = document.getElementById("doing-count");
+  const notdoingCount = document.getElementById("notdoing-count");
+  const bonusRule = document.getElementById("bonus-rule");
+
+  const hour = new Date().getHours();
+  greetingEl.textContent = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+  dateEl.textContent = "Today, " + new Date().toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+  function currentDay(){ return state.days[today]; }
+  function matchesFilter(text){
+    return !filterQuery || text.toLowerCase().includes(filterQuery);
+  }
+  function todayPoints(){
+    const day = currentDay();
+    return day.doing.filter(i => i.done).length * PTS_COMPLETE
+      + day.pickupPoints
+      + (day.bonusAwarded ? PTS_BONUS : 0);
+  }
+
+  /* Clean sweep: every set-aside task was pulled back AND completed,
+     nothing is left in Not doing today, and no open tasks remain. */
+  function maybeAwardBonus(){
+    const day = currentDay();
+    if(day.bonusAwarded) return;
+    const hadSetAsides = day.doing.some(i => i.fromNotDoing);
+    const allDone = day.doing.length > 0 && day.doing.every(i => i.done);
+    if(hadSetAsides && allDone && day.notDoing.length === 0){
+      day.bonusAwarded = true;
+    }
+  }
+
+  function render(){
+    const day = currentDay();
+
+    doingList.innerHTML = "";
+    const visibleDoing = day.doing.filter(i => matchesFilter(i.text));
+    if(day.doing.length === 0){
+      doingList.innerHTML = '<p class="empty-note">Nothing here yet. Add what\'s actually happening today.</p>';
+    } else if(visibleDoing.length === 0){
+      doingList.innerHTML = '<p class="empty-note">No matches for that search.</p>';
+    } else {
+      visibleDoing.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        card.style.setProperty("--accent", item.fromNotDoing ? "var(--teal)" : ACCENTS[idx % ACCENTS.length]);
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "item-check";
+        check.checked = item.done;
+        check.setAttribute("aria-label", "Mark \"" + item.text + "\" complete");
+        check.addEventListener("change", () => {
+          item.done = check.checked;
+          maybeAwardBonus();
+          save(); render();
+        });
+
+        const main = document.createElement("div");
+        main.className = "item-main";
+        const text = document.createElement("p");
+        text.className = "item-text" + (item.done ? " done" : "");
+        text.textContent = item.text;
+        const dueChip = makeDueChip(item.dueDate);
+        if(dueChip && !item.done) text.appendChild(dueChip);
+        const meta = document.createElement("p");
+        meta.className = "item-meta";
+        meta.textContent = item.autoMoved
+          ? "Moved here automatically — it was due"
+          : (item.fromNotDoing ? "Picked back up · " : "Added ") + relTime(item.createdAt);
+        main.appendChild(text);
+        main.appendChild(meta);
+
+        const pts = document.createElement("span");
+        pts.className = "pts-tag" + (item.done ? " earned" : "");
+        pts.textContent = item.done ? "+" + PTS_COMPLETE + " earned" : "+" + PTS_COMPLETE + " pts";
+
+        const menuWrap = buildMenu(item.id, [
+          { label: "Set aside for today", action: () => {
+            day.doing = day.doing.filter(i => i.id !== item.id);
+            addRelease(item.text, item);
+          }},
+          { label: "Delete", danger: true, action: () => {
+            day.doing = day.doing.filter(i => i.id !== item.id);
+            maybeAwardBonus();
+            save(); render();
+          }}
+        ]);
+
+        card.appendChild(check);
+        card.appendChild(main);
+        card.appendChild(pts);
+        card.appendChild(menuWrap);
+        doingList.appendChild(card);
+      });
+    }
+
+    notdoingStack.innerHTML = "";
+    const reversedNotDoing = day.notDoing.slice().reverse();
+    const visibleNotDoing = reversedNotDoing.filter(i => matchesFilter(i.text));
+    if(day.notDoing.length === 0){
+      notdoingStack.innerHTML = '<p class="empty-note">Nothing set aside. Give yourself permission.</p>';
+    } else if(visibleNotDoing.length === 0){
+      notdoingStack.innerHTML = '<p class="empty-note">No matches for that search.</p>';
+    } else {
+      visibleNotDoing.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        card.style.setProperty("--accent", "var(--coral)");
+
+        const main = document.createElement("div");
+        main.className = "item-main";
+        const text = document.createElement("p");
+        text.className = "item-text";
+        text.textContent = item.text;
+        const dueChip = makeDueChip(item.dueDate);
+        if(dueChip) text.appendChild(dueChip);
+        const meta = document.createElement("p");
+        meta.className = "item-meta italic";
+        meta.textContent = item.note;
+        main.appendChild(text);
+        main.appendChild(meta);
+
+        const readyBtn = document.createElement("button");
+        readyBtn.type = "button";
+        readyBtn.className = "ready-btn";
+        readyBtn.textContent = item.pickupAwarded ? "I'm ready" : "I'm ready · +" + PTS_PICKUP;
+        readyBtn.addEventListener("click", () => {
+          day.notDoing = day.notDoing.filter(i => i.id !== item.id);
+          if(!item.pickupAwarded){
+            day.pickupPoints += PTS_PICKUP;
+          }
+          day.doing.push({
+            id: uid(), text: item.text, done: false, createdAt: Date.now(),
+            dueDate: item.dueDate, fromNotDoing: true, pickupAwarded: true
+          });
+          maybeAwardBonus();
+          save(); render();
+        });
+
+        const menuWrap = buildMenu(item.id, [
+          { label: "Remove", danger: true, action: () => {
+            day.notDoing = day.notDoing.filter(i => i.id !== item.id);
+            maybeAwardBonus();
+            save(); render();
+          }}
+        ]);
+
+        card.appendChild(main);
+        card.appendChild(readyBtn);
+        card.appendChild(menuWrap);
+        notdoingStack.appendChild(card);
+      });
+    }
+
+    const doneCount = day.doing.filter(i => i.done).length;
+    const remaining = day.doing.length - doneCount;
+    taskCountEl.textContent = remaining === 0
+      ? (day.doing.length === 0 ? "Nothing on your plate yet" : "All clear — nothing left to do")
+      : remaining + (remaining === 1 ? " thing to do" : " things to do");
+
+    doingCount.textContent = doneCount + " / " + day.doing.length + " done";
+    notdoingCount.textContent = day.notDoing.length + " set aside";
+
+    const pts = todayPoints();
+    const goal = state.goal;
+    pointsNum.textContent = pts;
+    goalDisplay.textContent = goal;
+    ringBig.textContent = pts;
+    ringSmall.textContent = "of " + goal;
+    const frac = Math.min(1, goal ? pts / goal : 0);
+    ringFill.style.strokeDasharray = RING_CIRCUMFERENCE;
+    ringFill.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - frac);
+    ringFill.classList.toggle("goal-met", pts >= goal && goal > 0);
+    pointsCaption.textContent = day.bonusAwarded
+      ? "Clean sweep! +" + PTS_BONUS + " bonus earned"
+      : (pts >= goal && goal > 0 ? "Daily goal reached — nicely done" : "Points earned today");
+    bonusRule.classList.toggle("bonus-done", day.bonusAwarded);
+  }
+
+  function buildMenu(itemId, actions){
+    const wrap = document.createElement("div");
+    wrap.className = "item-menu-wrap";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "kebab-btn";
+    btn.setAttribute("aria-haspopup", "true");
+    btn.setAttribute("aria-label", "More options");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+
+    const menu = document.createElement("div");
+    menu.className = "kebab-menu";
+    menu.hidden = openMenuId !== itemId;
+
+    actions.forEach(a => {
+      const b = document.createElement("button");
+      b.type = "button";
+      if(a.danger) b.className = "danger";
+      b.textContent = a.label;
+      b.addEventListener("click", e => {
+        e.stopPropagation();
+        openMenuId = null;
+        a.action();
+      });
+      menu.appendChild(b);
+    });
+
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      openMenuId = openMenuId === itemId ? null : itemId;
+      render();
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+    return wrap;
+  }
+
+  document.addEventListener("click", () => { if(openMenuId !== null){ openMenuId = null; render(); } });
+
+  function addRelease(text, carryFrom, dueDate){
+    const day = currentDay();
+    const note = AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)];
+    day.notDoing.push({
+      id: uid(), text, note,
+      dueDate: carryFrom ? carryFrom.dueDate : (dueDate || null),
+      pickupAwarded: carryFrom ? !!carryFrom.pickupAwarded : false
+    });
+    save(); render();
+  }
+
+  document.getElementById("doing-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const input = document.getElementById("doing-input");
+    const dateInput = document.getElementById("doing-date");
+    const val = input.value.trim();
+    if(!val) return;
+    currentDay().doing.push({
+      id: uid(), text: val, done: false, createdAt: Date.now(),
+      dueDate: dateInput.value || null
+    });
+    input.value = "";
+    dateInput.value = "";
+    save(); render();
+  });
+
+  document.getElementById("notdoing-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const input = document.getElementById("notdoing-input");
+    const dateInput = document.getElementById("notdoing-date");
+    const val = input.value.trim();
+    if(!val) return;
+    const due = dateInput.value || null;
+    input.value = "";
+    dateInput.value = "";
+    // Setting aside something already due? It belongs in today's list — honor the due date.
+    const s = dueStatus(due);
+    if(s === "today" || s === "overdue"){
+      currentDay().doing.push({
+        id: uid(), text: val, done: false, createdAt: Date.now(),
+        dueDate: due, autoMoved: true
+      });
+      save(); render();
+      return;
+    }
+    addRelease(val, null, due);
+  });
+
+  const filterInput = document.getElementById("filter-input");
+  filterInput.addEventListener("input", () => {
+    filterQuery = filterInput.value.trim().toLowerCase();
+    render();
+  });
+  document.getElementById("filter-btn").addEventListener("click", () => filterInput.focus());
+
+  /* Goal editing */
+  function openGoalEditor(){
+    goalChip.style.display = "none";
+    goalEdit.classList.add("open");
+    goalInput.value = state.goal;
+    goalInput.focus();
+    goalInput.select();
+  }
+  function saveGoal(){
+    const v = parseInt(goalInput.value, 10);
+    if(!isNaN(v) && v >= 10) state.goal = v;
+    goalEdit.classList.remove("open");
+    goalChip.style.display = "";
+    save(); render();
+  }
+  goalChip.addEventListener("click", openGoalEditor);
+  document.getElementById("goal-save").addEventListener("click", saveGoal);
+  goalInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){ e.preventDefault(); saveGoal(); }
+    if(e.key === "Escape"){ goalEdit.classList.remove("open"); goalChip.style.display = ""; }
+  });
+
+  /* Receipt */
+  const overlay = document.getElementById("receipt-overlay");
+  const receiptContent = document.getElementById("receipt-content");
+
+  function buildReceiptText(){
+    const day = currentDay();
+    const pts = todayPoints();
+    let lines = [];
+    lines.push("UN-TO-DO CO.");
+    lines.push(dateEl.textContent);
+    lines.push("-".repeat(28));
+    lines.push("DOING TODAY");
+    if(day.doing.length === 0) lines.push("  (nothing logged)");
+    day.doing.forEach(i => lines.push("  " + (i.done ? "[x] " : "[ ] ") + i.text));
+    lines.push("-".repeat(28));
+    lines.push("SET ASIDE TODAY");
+    if(day.notDoing.length === 0) lines.push("  (nothing set aside)");
+    day.notDoing.forEach(i => lines.push("  - " + i.text));
+    lines.push("-".repeat(28));
+    lines.push("COMPLETED:         " + (day.doing.filter(i => i.done).length * PTS_COMPLETE) + " pts");
+    lines.push("PICKED BACK UP:    " + day.pickupPoints + " pts");
+    if(day.bonusAwarded) lines.push("CLEAN SWEEP BONUS: " + PTS_BONUS + " pts");
+    lines.push("TOTAL:             " + pts + " / " + state.goal + " pts");
+    lines.push("-".repeat(28));
+    lines.push("THANK YOU FOR TAKING CARE OF YOURSELF");
+    return lines.join("\n");
+  }
+
+  function renderReceipt(){
+    const day = currentDay();
+    const pts = todayPoints();
+    const goal = state.goal;
+    const goalMet = pts >= goal && goal > 0;
+    receiptContent.innerHTML = "";
+
+    function el(tag, cls, textContent){
+      const e = document.createElement(tag);
+      if(cls) e.className = cls;
+      if(textContent !== undefined) e.textContent = textContent;
+      return e;
+    }
+
+    receiptContent.appendChild(el("div", "r-eyebrow", "Day summary"));
+    receiptContent.appendChild(el("div", "r-date", dateEl.textContent));
+
+    const total = el("div", "r-total");
+    const num = el("span", "num" + (goalMet ? " goal-met" : ""), String(pts));
+    total.appendChild(num);
+    total.appendChild(el("span", "of", "of " + goal + " pts"));
+    receiptContent.appendChild(total);
+
+    const bar = el("div", "r-bar");
+    const fill = el("div", "fill" + (goalMet ? " goal-met" : ""));
+    fill.style.width = Math.min(100, goal ? Math.round(pts / goal * 100) : 0) + "%";
+    bar.appendChild(fill);
+    receiptContent.appendChild(bar);
+
+    if(day.bonusAwarded){
+      receiptContent.appendChild(el("p", "r-bonus-note", "Clean sweep — every task done, nothing left behind."));
+    }
+
+    receiptContent.appendChild(el("hr", "r-divider"));
+    receiptContent.appendChild(el("p", "r-section-title", "Today's tasks"));
+    if(day.doing.length === 0){
+      receiptContent.appendChild(el("div", "r-empty", "Nothing logged today."));
+    } else {
+      day.doing.forEach(i => {
+        const row = el("div", "line");
+        row.appendChild(el("span", "t" + (i.done ? " done-text" : ""), i.text));
+        row.appendChild(i.done
+          ? el("span", "chip c-earn", "+" + PTS_COMPLETE)
+          : el("span", "chip c-open", "open"));
+        receiptContent.appendChild(row);
+      });
+    }
+
+    receiptContent.appendChild(el("hr", "r-divider"));
+    receiptContent.appendChild(el("p", "r-section-title", "Set aside"));
+    if(day.notDoing.length === 0){
+      receiptContent.appendChild(el("div", "r-empty", "Nothing set aside — clean slate."));
+    } else {
+      day.notDoing.forEach(i => {
+        const row = el("div", "line");
+        row.appendChild(el("span", "t", i.text));
+        row.appendChild(el("span", "chip c-aside", "not today"));
+        receiptContent.appendChild(row);
+      });
+    }
+
+    receiptContent.appendChild(el("hr", "r-divider"));
+    const totals = el("div", "totals");
+    function totalLine(label, val, cls){
+      const row = el("div", "line" + (cls ? " " + cls : ""));
+      row.appendChild(el("span", "t", label));
+      row.appendChild(el("span", "v", val));
+      return row;
+    }
+    totals.appendChild(totalLine("Completed", (day.doing.filter(i => i.done).length * PTS_COMPLETE) + " pts"));
+    totals.appendChild(totalLine("Picked back up", day.pickupPoints + " pts"));
+    if(day.bonusAwarded) totals.appendChild(totalLine("Clean sweep bonus", "+" + PTS_BONUS + " pts", "bonus-line"));
+    totals.appendChild(totalLine("Total", pts + " / " + goal + " pts", "grand"));
+    receiptContent.appendChild(totals);
+
+    receiptContent.appendChild(el("div", "thanks", "Thank you for taking care of yourself."));
+  }
+
+  document.getElementById("nav-receipt").addEventListener("click", () => {
+    renderReceipt();
+    overlay.hidden = false;
+  });
+
+  /* ---------- Next day ---------- */
+  const plannerOverlay = document.getElementById("planner-overlay");
+  const plannerList = document.getElementById("planner-list");
+  const plannerSub = document.getElementById("planner-sub");
+
+  /* In-app confirm — the browser's native confirm() is blocked in
+     sandboxed frames, so we roll our own. */
+  const confirmOverlay = document.getElementById("confirm-overlay");
+  const confirmTitle = document.getElementById("confirm-title");
+  const confirmMessage = document.getElementById("confirm-message");
+  const confirmYesBtn = document.getElementById("confirm-yes");
+  const confirmCancelBtn = document.getElementById("confirm-cancel");
+
+  function askConfirm(title, message, yesLabel){
+    return new Promise(resolve => {
+      confirmTitle.textContent = title;
+      confirmMessage.textContent = message;
+      confirmYesBtn.textContent = yesLabel || "Yes, continue";
+      confirmOverlay.hidden = false;
+      function done(answer){
+        confirmOverlay.hidden = true;
+        confirmYesBtn.removeEventListener("click", onYes);
+        confirmCancelBtn.removeEventListener("click", onNo);
+        confirmOverlay.removeEventListener("click", onBackdrop);
+        resolve(answer);
+      }
+      function onYes(){ done(true); }
+      function onNo(){ done(false); }
+      function onBackdrop(e){ if(e.target === confirmOverlay) done(false); }
+      confirmYesBtn.addEventListener("click", onYes);
+      confirmCancelBtn.addEventListener("click", onNo);
+      confirmOverlay.addEventListener("click", onBackdrop);
+    });
+  }
+
+  async function startNextDay(){
+    const ok = await askConfirm(
+      "Start the next day?",
+      "Completed tasks are cleared, unfinished ones move to Not doing today, and points reset to 0.",
+      "Start next day"
+    );
+    if(!ok) return;
+    const day = currentDay();
+    // Unfinished tasks get set aside for the new day; completed ones are cleared.
+    const unfinished = day.doing.filter(i => !i.done);
+    unfinished.forEach(i => {
+      day.notDoing.push({
+        id: uid(),
+        text: i.text,
+        note: "Carried over from yesterday.",
+        dueDate: i.dueDate || null,
+        pickupAwarded: false,
+        carried: true
+      });
+    });
+    // Fresh day: new chances to earn pickup points and the bonus.
+    day.notDoing.forEach(i => { i.pickupAwarded = false; });
+    day.doing = [];
+    day.pickupPoints = 0;
+    day.bonusAwarded = false;
+    // Anything due today (or overdue) goes straight into the new day's tasks.
+    autoPromoteDue(day);
+    save();
+    overlay.hidden = true;
+
+    if(day.notDoing.length === 0){
+      render();
+      return;
+    }
+    renderPlanner();
+    plannerOverlay.hidden = false;
+    render();
+  }
+
+  function renderPlanner(){
+    const day = currentDay();
+    plannerList.innerHTML = "";
+    plannerSub.textContent = day.notDoing.length === 1
+      ? "Want to move this into Today's tasks? Only pick it if you're ready."
+      : "Want to move any of these into Today's tasks? Pick the ones you're ready for.";
+    day.notDoing.forEach(item => {
+      const label = document.createElement("label");
+      label.className = "planner-item";
+
+      const check = document.createElement("input");
+      check.type = "checkbox";
+      check.value = item.id;
+
+      const text = document.createElement("span");
+      text.className = "p-text";
+      text.textContent = item.text;
+      const dueChip = makeDueChip(item.dueDate);
+      if(dueChip) text.appendChild(dueChip);
+      if(item.carried){
+        const carried = document.createElement("span");
+        carried.className = "p-carried";
+        carried.textContent = "Carried over from yesterday";
+        text.appendChild(carried);
+      }
+
+      const pts = document.createElement("span");
+      pts.className = "p-pts";
+      pts.textContent = "+" + PTS_PICKUP;
+
+      label.appendChild(check);
+      label.appendChild(text);
+      label.appendChild(pts);
+      plannerList.appendChild(label);
+    });
+  }
+
+  document.getElementById("planner-confirm").addEventListener("click", () => {
+    const day = currentDay();
+    const selectedIds = [...plannerList.querySelectorAll("input:checked")].map(c => c.value);
+    selectedIds.forEach(id => {
+      const item = day.notDoing.find(i => i.id === id);
+      if(!item) return;
+      day.notDoing = day.notDoing.filter(i => i.id !== id);
+      day.pickupPoints += PTS_PICKUP;
+      day.doing.push({
+        id: uid(), text: item.text, done: false, createdAt: Date.now(),
+        dueDate: item.dueDate, fromNotDoing: true, pickupAwarded: true
+      });
+    });
+    plannerOverlay.hidden = true;
+    save(); render();
+  });
+  document.getElementById("planner-skip").addEventListener("click", () => {
+    plannerOverlay.hidden = true;
+  });
+  plannerOverlay.addEventListener("click", e => {
+    if(e.target === plannerOverlay) plannerOverlay.hidden = true;
+  });
+
+  document.getElementById("next-day").addEventListener("click", startNextDay);
+  document.getElementById("close-receipt").addEventListener("click", () => { overlay.hidden = true; });
+  overlay.addEventListener("click", e => { if(e.target === overlay) overlay.hidden = true; });
+  document.getElementById("copy-receipt").addEventListener("click", () => {
+    const btn = document.getElementById("copy-receipt");
+    navigator.clipboard.writeText(buildReceiptText()).then(() => {
+      const original = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  });
+
+  /* ---------- Backup: export / import ----------
+     Data lives in this browser only, so moving devices works by
+     exporting a file here and importing it there. */
+  const exportBtn = document.getElementById("export-btn");
+  const importBtn = document.getElementById("import-btn");
+  const importFile = document.getElementById("import-file");
+
+  function flashBtn(btn, msg){
+    const original = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = original; }, 1800);
+  }
+
+  if(!(window.claude && window.claude.downloads)){
+    exportBtn.hidden = true;
+  }
+  exportBtn.addEventListener("click", () => {
+    if(!(window.claude && window.claude.downloads)) return;
+    const payload = JSON.stringify({ app: "un-to-do", version: 3, exported: new Date().toISOString(), state }, null, 2);
+    window.claude.downloads.save({ filename: "un-to-do-backup.json", data: payload })
+      .then(() => flashBtn(exportBtn, "Saved!"))
+      .catch(err => {
+        if(err && err.code === "declined") return;
+        if(err && err.code === "rate_limited"){ flashBtn(exportBtn, "Try again"); return; }
+        flashBtn(exportBtn, "Unavailable");
+      });
+  });
+
+  importBtn.addEventListener("click", () => importFile.click());
+  importFile.addEventListener("change", () => {
+    const file = importFile.files[0];
+    importFile.value = "";
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      let parsed;
+      try{ parsed = JSON.parse(reader.result); } catch(e){ flashBtn(importBtn, "Bad file"); return; }
+      const incoming = parsed && parsed.app === "un-to-do" ? parsed.state : parsed;
+      if(!incoming || typeof incoming !== "object" || typeof incoming.days !== "object"){
+        flashBtn(importBtn, "Bad file");
+        return;
+      }
+      const ok = await askConfirm(
+        "Import this backup?",
+        "It will replace the data currently on this device.",
+        "Import"
+      );
+      if(!ok) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(incoming));
+      location.reload();
+    };
+    reader.onerror = () => flashBtn(importBtn, "Bad file");
+    reader.readAsText(file);
+  });
+
+  render();
+})();
+</script>
