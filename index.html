@@ -277,6 +277,89 @@
   .rule-pts.p20{ color: var(--gold); background: var(--gold-soft); }
   .rule-row.bonus-done{ color: var(--gold); font-weight: 650; }
 
+  /* ---------- Galaxy hero ---------- */
+  .galaxy-hero{
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    overflow: hidden;
+    margin-bottom: 34px;
+    min-height: 360px;
+    background: radial-gradient(ellipse 82% 92% at 50% 46%, rgba(37,25,70,0.6), rgba(10,7,20,0.35));
+    box-shadow: 0 24px 60px var(--shadow), inset 0 0 90px rgba(124,58,237,0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #galaxy-canvas{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: block;
+  }
+  .galaxy-topline{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px 0;
+    pointer-events: none;
+  }
+  .galaxy-caption{ font-size: 13px; color: var(--muted); font-weight: 650; }
+  .galaxy-universe{ font-size: 12px; color: var(--faint); font-weight: 650; text-align: right; }
+  .galaxy-center{
+    position: absolute;
+    z-index: 2;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -54%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .galaxy-center .points-value{
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 34px var(--glow), 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .galaxy-center .pts-unit{ font-size: 16px; font-weight: 650; color: var(--muted); margin-left: 5px; }
+  .galaxy-goal{ margin-top: 7px; font-size: 12.5px; color: var(--muted); font-weight: 650; font-variant-numeric: tabular-nums; }
+  .galaxy-legend{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 0 24px 20px;
+    flex-wrap: wrap;
+  }
+  .galaxy-legend .rules-list{
+    flex: 0 1 auto;
+    min-width: 0;
+    background: rgba(10,7,20,0.42);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 11px 15px;
+    gap: 7px;
+  }
+  .rule-hint{ color: var(--faint); }
+  .galaxy-goal-control{ display: flex; align-items: center; flex: none; }
+  .galaxy-goal-control .goal-chip{ margin-top: 0; }
+  @media (max-width: 620px){
+    .galaxy-hero{ min-height: 320px; }
+    .galaxy-center .points-value{ font-size: 38px; }
+    .rule-hint{ display: none; }
+    .galaxy-legend{ gap: 12px; }
+  }
+
   /* ---------- Search ---------- */
   .search-row{
     display: flex;
@@ -945,35 +1028,34 @@
     </div>
   </header>
 
-  <div class="points-banner">
-    <div class="points-main">
+  <section class="galaxy-hero">
+    <canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+    <div class="galaxy-center" aria-live="polite">
       <div class="points-value"><span id="points-num">0</span><span class="pts-unit">pts</span></div>
-      <div class="points-caption" id="points-caption">Points earned today</div>
-      <button class="goal-chip" id="goal-chip" type="button" aria-label="Change daily goal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
-        Goal: <span id="goal-display">50</span> pts
-      </button>
-      <span class="goal-edit" id="goal-edit">
-        <input type="number" id="goal-input" min="10" step="10" aria-label="Daily points goal" />
-        <button type="button" id="goal-save">Save</button>
-      </span>
+      <div class="galaxy-goal" id="ring-small">of 50</div>
     </div>
-    <div class="ring-wrap" aria-hidden="true">
-      <svg viewBox="0 0 92 92">
-        <circle class="ring-track" cx="46" cy="46" r="38" fill="none" stroke-width="7"/>
-        <circle class="ring-fill" id="ring-fill" cx="46" cy="46" r="38" fill="none" stroke-width="7" transform="rotate(-90 46 46)"/>
-      </svg>
-      <span class="ring-label">
-        <span class="big" id="ring-big">0</span>
-        <span class="small" id="ring-small">of 50</span>
-      </span>
+    <div class="galaxy-topline">
+      <div class="galaxy-caption" id="points-caption">Points earned today</div>
+      <div class="galaxy-universe" id="universe-count">Your universe is waiting</div>
     </div>
-    <div class="rules-list">
-      <div class="rule-row"><span class="rule-pts p10">+10</span> Complete a task</div>
-      <div class="rule-row"><span class="rule-pts p5">+5</span> Pick a task back up from "Not doing today"</div>
-      <div class="rule-row" id="bonus-rule"><span class="rule-pts p20">+20</span> Clean sweep — complete everything, including every task you'd set aside</div>
+    <div class="galaxy-legend">
+      <div class="rules-list">
+        <div class="rule-row"><span class="rule-pts p10">+10</span> Complete a task <span class="rule-hint">— a planet ignites into a star</span></div>
+        <div class="rule-row"><span class="rule-pts p5">+5</span> Pull a task back from "Not doing today"</div>
+        <div class="rule-row" id="bonus-rule"><span class="rule-pts p20">+20</span> Clean sweep — finish everything you set out to do</div>
+      </div>
+      <div class="galaxy-goal-control">
+        <button class="goal-chip" id="goal-chip" type="button" aria-label="Change daily goal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
+          Goal: <span id="goal-display">50</span> pts
+        </button>
+        <span class="goal-edit" id="goal-edit">
+          <input type="number" id="goal-input" min="10" step="10" aria-label="Daily points goal" />
+          <button type="button" id="goal-save">Save</button>
+        </span>
+      </div>
     </div>
-  </div>
+  </section>
 
   <div class="search-row">
     <input id="filter-input" type="text" placeholder="Search your lists" autocomplete="off" />
@@ -1070,7 +1152,10 @@
     "You already did enough."
   ];
   const ACCENTS = ["var(--purple)", "var(--coral)", "var(--teal)"];
-  const RING_CIRCUMFERENCE = 2 * Math.PI * 38;
+
+  /* Galaxy visualization state, driven by render() each frame. */
+  const galaxy = { pts: 0, goal: DEFAULT_GOAL, frac: 0, goalMet: false };
+  function lifetimeStars(){ return state.starsEarned || 0; }
 
   function todayStr(d){
     d = d || new Date();
@@ -1155,6 +1240,17 @@
     day.notDoing = day.notDoing.filter(i => i && typeof i.text === "string");
     if(typeof day.pickupPoints !== "number") day.pickupPoints = 0;
     if(typeof day.bonusAwarded !== "boolean") day.bonusAwarded = false;
+    // Lifetime star count survives day rollover; seed it from history once.
+    if(typeof s.starsEarned !== "number"){
+      let seed = 0;
+      for(const k in s.days){
+        const d = s.days[k];
+        if(d && Array.isArray(d.doing)) seed += d.doing.filter(t => t.done).length;
+      }
+      s.starsEarned = seed;
+    }
+    // Mark already-completed tasks so re-checking them can't inflate the count.
+    day.doing.forEach(t => { if(t.done) t.starred = true; });
     return s;
   }
   function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -1180,9 +1276,8 @@
   const goalChip = document.getElementById("goal-chip");
   const goalEdit = document.getElementById("goal-edit");
   const goalInput = document.getElementById("goal-input");
-  const ringFill = document.getElementById("ring-fill");
-  const ringBig = document.getElementById("ring-big");
   const ringSmall = document.getElementById("ring-small");
+  const universeCount = document.getElementById("universe-count");
   const doingCount = document.getElementById("doing-count");
   const notdoingCount = document.getElementById("notdoing-count");
   const bonusRule = document.getElementById("bonus-rule");
@@ -1236,6 +1331,11 @@
         check.setAttribute("aria-label", "Mark \"" + item.text + "\" complete");
         check.addEventListener("change", () => {
           item.done = check.checked;
+          // First time a task is completed, it lights a permanent star.
+          if(item.done && !item.starred){
+            item.starred = true;
+            state.starsEarned = (state.starsEarned || 0) + 1;
+          }
           maybeAwardBonus();
           save(); render();
         });
@@ -1348,18 +1448,23 @@
 
     const pts = todayPoints();
     const goal = state.goal;
+    const goalMet = pts >= goal && goal > 0;
     pointsNum.textContent = pts;
     goalDisplay.textContent = goal;
-    ringBig.textContent = pts;
-    ringSmall.textContent = "of " + goal;
-    const frac = Math.min(1, goal ? pts / goal : 0);
-    ringFill.style.strokeDasharray = RING_CIRCUMFERENCE;
-    ringFill.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - frac);
-    ringFill.classList.toggle("goal-met", pts >= goal && goal > 0);
+    ringSmall.textContent = "of " + goal + " pts";
+    galaxy.pts = pts;
+    galaxy.goal = goal;
+    galaxy.frac = Math.min(1, goal ? pts / goal : 0);
+    galaxy.goalMet = goalMet;
     pointsCaption.textContent = day.bonusAwarded
       ? "Clean sweep! +" + PTS_BONUS + " bonus earned"
-      : (pts >= goal && goal > 0 ? "Daily goal reached — nicely done" : "Points earned today");
+      : (goalMet ? "Daily goal reached — nicely done" : "Points earned today");
     bonusRule.classList.toggle("bonus-done", day.bonusAwarded);
+
+    const lifetime = lifetimeStars();
+    universeCount.textContent = lifetime === 0
+      ? "Complete a task to light your first star"
+      : lifetime === 1 ? "1 star in your universe" : lifetime.toLocaleString() + " stars in your universe";
   }
 
   function buildMenu(itemId, actions){
@@ -1802,6 +1907,166 @@
     reader.onerror = () => flashBtn(importBtn, "Bad file");
     reader.readAsText(file);
   });
+
+  /* ---------- Galaxy canvas ----------
+     You are the core; tasks orbit as planets; completing one ignites it
+     into a star; set-aside tasks drift in a far, dim orbit; every task you
+     have ever completed leaves a star in the background. */
+  (function galaxyEngine(){
+    const canvas = document.getElementById("galaxy-canvas");
+    if(!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let W = 0, H = 0, dpr = 1;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      if(rect.width === 0 || rect.height === 0) return;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = rect.width; H = rect.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildBackground();
+    }
+
+    function mulberry32(a){ return function(){ a|=0; a = a+0x6D2B79F5|0; let t = Math.imul(a^a>>>15, 1|a); t = t+Math.imul(t^t>>>7, 61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+    let bgStars = [];
+    function buildBackground(){
+      const lifetime = lifetimeStars();
+      const count = Math.min(150, 26 + lifetime * 2);
+      const rng = mulberry32(1234 + Math.floor(lifetime));
+      bgStars = [];
+      for(let i=0;i<count;i++){
+        bgStars.push({ x: rng()*W, y: rng()*H, r: 0.4 + rng()*1.3, base: 0.14 + rng()*0.5, tw: 0.5 + rng()*1.6, ph: rng()*Math.PI*2 });
+      }
+    }
+
+    function hash01(str){
+      let h = 2166136261;
+      for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+      return ((h>>>0) % 10000) / 10000;
+    }
+
+    const seenDone = {};
+    const igniteAt = {};
+
+    function drawBody(x, y, tk, now){
+      if(tk.done){
+        let scale = 1;
+        const ig = igniteAt[tk.id];
+        if(ig){
+          const p = (now - ig) / 650;
+          if(p < 1){
+            scale = 1 + (1 - p) * 1.6;
+            ctx.globalAlpha = (1 - p) * 0.6;
+            ctx.strokeStyle = "#FFE9A8";
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(x, y, 6 + p * 24, 0, Math.PI*2); ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+        const R = 3.4 * scale;
+        ctx.shadowBlur = 16; ctx.shadowColor = "rgba(233,180,76,0.9)";
+        const g = ctx.createRadialGradient(x, y, 0, x, y, R*2.4);
+        g.addColorStop(0, "#FFF6DC"); g.addColorStop(0.5, "#F5C860"); g.addColorStop(1, "rgba(233,180,76,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, R*2.4, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "rgba(255,246,220,0.75)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x-R*2.2, y); ctx.lineTo(x+R*2.2, y); ctx.moveTo(x, y-R*2.2); ctx.lineTo(x, y+R*2.2); ctx.stroke();
+      } else {
+        const R = 4.2;
+        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(168,133,255,0.7)";
+        const g = ctx.createRadialGradient(x-R*0.4, y-R*0.4, 0, x, y, R);
+        g.addColorStop(0, "#D9C9FF"); g.addColorStop(1, "#8B5CF6");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function drawCore(cx, cy, minDim, t){
+      const pulse = reduce ? 1 : 1 + Math.sin(t*1.4)*0.05;
+      const R = minDim * 0.13 * pulse;
+      const met = galaxy.goalMet;
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R*2.6);
+      if(met){
+        glow.addColorStop(0, "rgba(240,205,120,0.85)");
+        glow.addColorStop(0.42, "rgba(233,180,76,0.45)");
+        glow.addColorStop(1, "rgba(233,180,76,0)");
+      } else {
+        glow.addColorStop(0, "rgba(160,128,236,0.85)");
+        glow.addColorStop(0.42, "rgba(124,58,237,0.42)");
+        glow.addColorStop(1, "rgba(124,58,237,0)");
+      }
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(cx, cy, R*2.6, 0, Math.PI*2); ctx.fill();
+
+      const ar = R * 1.7;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.beginPath(); ctx.arc(cx, cy, ar, 0, Math.PI*2); ctx.stroke();
+      if(galaxy.frac > 0){
+        ctx.strokeStyle = met ? "#F5C860" : "#B9A3FF";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(cx, cy, ar, -Math.PI/2, -Math.PI/2 + galaxy.frac*Math.PI*2);
+        ctx.stroke();
+        ctx.lineCap = "butt";
+      }
+    }
+
+    function draw(now){
+      if(W === 0){ resize(); if(W === 0){ requestAnimationFrame(draw); return; } }
+      const t = now / 1000;
+      ctx.clearRect(0, 0, W, H);
+      const cx = W/2, cy = H/2, minDim = Math.min(W, H);
+
+      for(const s of bgStars){
+        const a = s.base + Math.sin(t*s.tw + s.ph)*0.25*s.base;
+        ctx.globalAlpha = Math.max(0, a);
+        ctx.fillStyle = "#CBB9FF";
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      const day = currentDay();
+      const rInner = minDim*0.20, rMid = minDim*0.30, rOuter = minDim*0.42;
+
+      ctx.strokeStyle = "rgba(185,163,255,0.06)"; ctx.lineWidth = 1;
+      [rInner, rMid, rOuter].forEach(r=>{ ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke(); });
+
+      day.doing.forEach(tk=>{
+        const was = seenDone[tk.id];
+        if(tk.done && was === false) igniteAt[tk.id] = now;
+        seenDone[tk.id] = tk.done;
+      });
+
+      day.doing.forEach((tk, idx)=>{
+        const ring = idx % 2 === 0 ? rInner : rMid;
+        const speed = idx % 2 === 0 ? 0.16 : 0.11;
+        const ang = hash01(tk.id)*Math.PI*2 + (reduce ? 0 : t*speed);
+        drawBody(cx + Math.cos(ang)*ring, cy + Math.sin(ang)*ring*0.86, tk, now);
+      });
+
+      day.notDoing.forEach(tk=>{
+        const ang = hash01(tk.id)*Math.PI*2 + (reduce ? 0 : t*0.05);
+        const x = cx + Math.cos(ang)*rOuter, y = cy + Math.sin(ang)*rOuter*0.86;
+        ctx.globalAlpha = 0.5; ctx.fillStyle = "#6F63A0";
+        ctx.shadowBlur = 6; ctx.shadowColor = "rgba(111,99,160,0.6)";
+        ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      });
+
+      drawCore(cx, cy, minDim, t);
+
+      if(!reduce) requestAnimationFrame(draw);
+    }
+
+    window.addEventListener("resize", () => { resize(); if(reduce) requestAnimationFrame(draw); });
+    requestAnimationFrame(function start(t){ resize(); draw(t); });
+  })();
 
   render();
 })();
