@@ -9,27 +9,28 @@
 <style>
   /* Deliberately single-theme: a committed dark UI. */
   :root{
-    --bg: #17131F;
-    --bg-glow: #1E1830;
-    --surface: #221C31;
-    --surface-2: #2B2440;
-    --surface-3: #352D4E;
-    --ink: #F2EFF9;
-    --muted: #9C92B8;
-    --faint: #6E6488;
-    --purple: #A78BFA;
-    --purple-deep: #7C5CD1;
-    --purple-soft: rgba(167,139,250,0.14);
-    --coral: #F2705B;
-    --coral-soft: rgba(242,112,91,0.14);
-    --teal: #3ECFC9;
-    --teal-soft: rgba(62,207,201,0.13);
+    --bg: #08060F;
+    --bg-glow: #2B1657;
+    --surface: #120C1F;
+    --surface-2: #1A1230;
+    --surface-3: #251946;
+    --ink: #F5F2FF;
+    --muted: #A89BCF;
+    --faint: #6F63A0;
+    --purple: #B9A3FF;
+    --purple-deep: #7C3AED;
+    --purple-soft: rgba(168,133,255,0.16);
+    --coral: #A855F7;
+    --coral-soft: rgba(168,85,247,0.18);
+    --teal: #8FA8FF;
+    --teal-soft: rgba(143,168,255,0.15);
     --gold: #E9B44C;
     --gold-soft: rgba(233,180,76,0.13);
     --ring-track: rgba(255,255,255,0.08);
-    --line: rgba(255,255,255,0.07);
-    --shadow: rgba(0,0,0,0.45);
-    --backdrop: rgba(8,6,14,0.72);
+    --line: rgba(185,163,255,0.12);
+    --shadow: rgba(0,0,0,0.55);
+    --backdrop: rgba(5,3,12,0.78);
+    --glow: rgba(168,133,255,0.35);
     color-scheme: dark;
   }
 
@@ -39,8 +40,10 @@
     margin: 0;
     min-height: 100vh;
     background:
-      radial-gradient(ellipse 900px 600px at 12% -5%, var(--bg-glow), transparent 60%),
-      radial-gradient(ellipse 800px 550px at 95% 105%, #1C1428, transparent 55%),
+      radial-gradient(ellipse 1000px 650px at 15% -8%, var(--bg-glow), transparent 62%),
+      radial-gradient(ellipse 700px 450px at 85% 15%, rgba(124,58,237,0.20), transparent 60%),
+      radial-gradient(ellipse 900px 600px at 92% 108%, #1D0F3E, transparent 58%),
+      radial-gradient(ellipse 500px 350px at 40% 115%, rgba(168,85,247,0.14), transparent 65%),
       var(--bg);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -54,7 +57,7 @@
     position: fixed;
     width: 300px;
     height: 300px;
-    border: 1px solid rgba(167,139,250,0.09);
+    border: 1px solid rgba(185,163,255,0.14);
     border-radius: 36px;
     pointer-events: none;
     z-index: 0;
@@ -91,6 +94,7 @@
     margin: 6px 0 4px;
     letter-spacing: -0.02em;
     text-wrap: balance;
+    text-shadow: 0 0 28px var(--glow);
   }
   .sub-date{
     font-size: 14px;
@@ -111,7 +115,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--coral);
+    background: linear-gradient(135deg, var(--purple-deep), var(--coral));
     border: none;
     border-radius: 999px;
     color: #fff;
@@ -120,8 +124,9 @@
     font-weight: 700;
     padding: 12px 22px;
     cursor: pointer;
+    box-shadow: 0 0 24px rgba(124,58,237,0.35);
   }
-  .receipt-btn:hover{ opacity: 0.92; }
+  .receipt-btn:hover{ opacity: 0.92; box-shadow: 0 0 32px rgba(168,85,247,0.5); }
   .receipt-btn svg{ width: 17px; height: 17px; }
   .avatar{
     flex: none;
@@ -155,6 +160,7 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
     line-height: 1;
+    text-shadow: 0 0 24px var(--glow);
   }
   .points-value .pts-unit{
     font-size: 15px;
@@ -226,8 +232,9 @@
     stroke: var(--purple);
     stroke-linecap: round;
     transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+    filter: drop-shadow(0 0 6px var(--glow));
   }
-  .ring-fill.goal-met{ stroke: var(--gold); }
+  .ring-fill.goal-met{ stroke: var(--gold); filter: drop-shadow(0 0 8px rgba(233,180,76,0.5)); }
   .ring-label{
     position: absolute;
     inset: 0;
@@ -526,7 +533,7 @@
     background: var(--purple-deep);
     cursor: pointer;
   }
-  .pill-form button:hover{ opacity: 0.9; }
+  .pill-form button:hover{ opacity: 0.9; box-shadow: 0 0 20px var(--glow); }
   .pill-form-coral button{ background: var(--coral); }
   .pill-form .date-input{
     flex: none;
