@@ -353,11 +353,162 @@
   .rule-hint{ color: var(--faint); }
   .galaxy-goal-control{ display: flex; align-items: center; flex: none; }
   .galaxy-goal-control .goal-chip{ margin-top: 0; }
+
+  /* Rank / era */
+  .galaxy-rank{ min-width: 0; max-width: 60%; }
+  .rank-row{ display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rank-name{
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-shadow: 0 0 18px var(--glow);
+  }
+  .rank-progress-text{ font-size: 11.5px; color: var(--faint); font-weight: 650; font-variant-numeric: tabular-nums; }
+  .rank-bar{
+    margin-top: 7px;
+    width: 180px;
+    max-width: 100%;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .rank-bar-fill{
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--purple-deep), var(--purple));
+    box-shadow: 0 0 10px var(--glow);
+    transition: width 0.5s ease;
+  }
+  .galaxy-topright{ display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .streak-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 750;
+    color: var(--purple);
+    background: var(--purple-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .streak-chip svg{ width: 13px; height: 13px; }
+  .streak-chip .streak-word{ color: var(--muted); font-weight: 650; }
+  .streak-chip.hot{
+    color: #FFD9A0;
+    background: rgba(242,140,80,0.16);
+    border-color: rgba(242,140,80,0.35);
+    box-shadow: 0 0 16px rgba(242,140,80,0.3);
+  }
+  .streak-chip.hot svg{ color: #FF9D5C; }
+  .galaxy-universe{ font-size: 12px; color: var(--faint); font-weight: 650; text-align: right; }
+  .galaxy-universe .uni-num{ color: var(--muted); }
+  .galaxy-caption-line{
+    position: absolute;
+    z-index: 2;
+    left: 0; right: 0;
+    top: calc(50% + 42px);
+    text-align: center;
+    pointer-events: none;
+  }
+  .galaxy-caption-line .galaxy-caption{ font-size: 12.5px; color: var(--muted); font-weight: 650; }
+
+  /* Milestones */
+  .milestones-panel{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 20px 22px;
+    margin-bottom: 34px;
+    box-shadow: 0 24px 60px var(--shadow);
+  }
+  .milestones-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .milestones-head h2{ font-size: 15px; font-weight: 750; margin: 0; letter-spacing: -0.01em; }
+  .milestones-count{ font-size: 12.5px; font-weight: 650; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .milestone-shelf{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .milestone{
+    position: relative;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 12px 12px 42px;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0.5;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+    cursor: default;
+  }
+  .milestone .m-star{
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+  }
+  .milestone .m-star svg{ width: 18px; height: 18px; display: block; }
+  .milestone .m-name{ font-size: 13px; font-weight: 700; color: var(--ink); }
+  .milestone .m-desc{ font-size: 11px; color: var(--faint); margin-top: 2px; line-height: 1.35; }
+  .milestone.earned{
+    opacity: 1;
+    border-color: rgba(233,180,76,0.35);
+    background: linear-gradient(135deg, rgba(233,180,76,0.10), var(--surface-2));
+  }
+  .milestone.earned .m-star{ color: var(--gold); filter: drop-shadow(0 0 6px rgba(233,180,76,0.6)); }
+  .milestone.earned .m-desc{ color: var(--muted); }
+  .milestone:focus-visible{ outline: 2px solid var(--purple); outline-offset: 2px; }
+
+  /* Milestone toast */
+  .milestone-toast{
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 140%);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, var(--surface-3), var(--surface));
+    border: 1px solid rgba(233,180,76,0.4);
+    border-radius: 16px;
+    padding: 14px 20px 14px 16px;
+    box-shadow: 0 20px 50px var(--shadow), 0 0 40px rgba(233,180,76,0.2);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(.2,.9,.3,1.2), opacity 0.35s ease;
+    max-width: 90vw;
+  }
+  .milestone-toast.show{ transform: translate(-50%, 0); opacity: 1; }
+  .milestone-toast .mt-badge{ color: var(--gold); filter: drop-shadow(0 0 8px rgba(233,180,76,0.7)); flex: none; }
+  .milestone-toast .mt-badge svg{ width: 30px; height: 30px; display: block; }
+  .milestone-toast .mt-text{ display: flex; flex-direction: column; }
+  .milestone-toast .mt-label{ font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  .milestone-toast .mt-name{ font-size: 15px; font-weight: 800; color: var(--ink); margin-top: 1px; }
+  .milestone-toast .mt-desc{ font-size: 12px; color: var(--muted); margin-top: 1px; }
+
   @media (max-width: 620px){
     .galaxy-hero{ min-height: 320px; }
     .galaxy-center .points-value{ font-size: 38px; }
     .rule-hint{ display: none; }
     .galaxy-legend{ gap: 12px; }
+    .galaxy-rank{ max-width: 100%; }
+    .rank-bar{ width: 140px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .milestone-toast{ transition: opacity 0.2s ease; transform: translate(-50%, 0); }
   }
 
   /* ---------- Search ---------- */
@@ -1035,9 +1186,22 @@
       <div class="galaxy-goal" id="ring-small">of 50</div>
     </div>
     <div class="galaxy-topline">
-      <div class="galaxy-caption" id="points-caption">Points earned today</div>
-      <div class="galaxy-universe" id="universe-count">Your universe is waiting</div>
+      <div class="galaxy-rank">
+        <div class="rank-row">
+          <span class="rank-name" id="rank-name">Void</span>
+          <span class="rank-progress-text" id="rank-progress-text"></span>
+        </div>
+        <div class="rank-bar" id="rank-bar"><span class="rank-bar-fill" id="rank-bar-fill"></span></div>
+      </div>
+      <div class="galaxy-topright">
+        <div class="streak-chip" id="streak-chip" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3-1 4-1 6a3 3 0 006 0c0-1 0-2-1-3 3 2 5 5 5 9a8 8 0 01-16 0c0-4 3-7 4-9 1 2 2 2 3-3z"/></svg>
+          <span id="streak-num">0</span><span class="streak-word">day streak</span>
+        </div>
+        <div class="galaxy-universe"><span class="uni-num" id="universe-count">Light your first star</span></div>
+      </div>
     </div>
+    <div class="galaxy-caption-line"><span class="galaxy-caption" id="points-caption">Points earned today</span></div>
     <div class="galaxy-legend">
       <div class="rules-list">
         <div class="rule-row"><span class="rule-pts p10">+10</span> Complete a task <span class="rule-hint">— a planet ignites into a star</span></div>
@@ -1055,6 +1219,14 @@
         </span>
       </div>
     </div>
+  </section>
+
+  <section class="milestones-panel">
+    <div class="milestones-head">
+      <h2>Milestones</h2>
+      <span class="milestones-count" id="milestone-count">0 / 8</span>
+    </div>
+    <div class="milestone-shelf" id="milestone-shelf" role="list"></div>
   </section>
 
   <div class="search-row">
@@ -1108,6 +1280,11 @@
   </div>
 </div>
 
+<div class="milestone-toast" id="milestone-toast" role="status" aria-live="polite">
+  <span class="mt-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7z"/></svg></span>
+  <span class="mt-text"><span class="mt-label">Milestone unlocked</span><span class="mt-name"></span><span class="mt-desc"></span></span>
+</div>
+
 <div class="confirm-overlay" id="confirm-overlay" hidden>
   <div class="confirm-card">
     <h3 id="confirm-title">Are you sure?</h3>
@@ -1154,8 +1331,51 @@
   const ACCENTS = ["var(--purple)", "var(--coral)", "var(--teal)"];
 
   /* Galaxy visualization state, driven by render() each frame. */
-  const galaxy = { pts: 0, goal: DEFAULT_GOAL, frac: 0, goalMet: false };
+  const galaxy = { pts: 0, goal: DEFAULT_GOAL, frac: 0, goalMet: false, rankLevel: 0, streak: 0 };
   function lifetimeStars(){ return state.starsEarned || 0; }
+
+  /* Cosmic ranks — your universe evolves as lifetime stars grow. */
+  const RANKS = [
+    { min: 0,   name: "Void" },
+    { min: 1,   name: "Stardust" },
+    { min: 10,  name: "Nebula" },
+    { min: 25,  name: "Star Cluster" },
+    { min: 50,  name: "Constellation" },
+    { min: 100, name: "Galaxy" },
+    { min: 250, name: "Supercluster" }
+  ];
+  function rankInfo(stars){
+    let level = 0;
+    for(let i = 0; i < RANKS.length; i++){ if(stars >= RANKS[i].min) level = i; }
+    const current = RANKS[level];
+    const next = RANKS[level + 1] || null;
+    return {
+      level,
+      name: current.name,
+      next: next ? next.name : null,
+      into: stars - current.min,
+      span: next ? next.min - current.min : 0,
+      toNext: next ? next.min - stars : 0,
+      frac: next ? (stars - current.min) / (next.min - current.min) : 1
+    };
+  }
+
+  /* Milestones — permanent achievements, unlocked once and kept. */
+  const MILESTONES = [
+    { id: "first-light",  name: "First Light",  desc: "Light your very first star",        test: s => (s.starsEarned||0) >= 1 },
+    { id: "clean-sweep",  name: "Clean Sweep",  desc: "Earn your first clean-sweep bonus",  test: s => !!s.everCleanSwept },
+    { id: "nebula",       name: "Nebula",       desc: "Reach 10 lifetime stars",           test: s => (s.starsEarned||0) >= 10 },
+    { id: "on-fire",      name: "On Fire",      desc: "Reach a 3-day goal streak",         test: s => (s.bestStreak||0) >= 3 },
+    { id: "cluster",      name: "Star Cluster", desc: "Reach 25 lifetime stars",           test: s => (s.starsEarned||0) >= 25 },
+    { id: "unstoppable",  name: "Unstoppable",  desc: "Reach a 7-day goal streak",         test: s => (s.bestStreak||0) >= 7 },
+    { id: "constellation",name: "Constellation",desc: "Reach 50 lifetime stars",           test: s => (s.starsEarned||0) >= 50 },
+    { id: "centurion",    name: "Centurion",    desc: "Reach 100 lifetime stars",          test: s => (s.starsEarned||0) >= 100 }
+  ];
+
+  function daysBetween(a, b){
+    const da = new Date(a + "T00:00:00"), db = new Date(b + "T00:00:00");
+    return Math.round((db - da) / 86400000);
+  }
 
   function todayStr(d){
     d = d || new Date();
@@ -1249,6 +1469,11 @@
       }
       s.starsEarned = seed;
     }
+    if(typeof s.goalStreak !== "number") s.goalStreak = 0;
+    if(typeof s.bestStreak !== "number") s.bestStreak = 0;
+    if(typeof s.lastGoalDate !== "string") s.lastGoalDate = null;
+    if(typeof s.everCleanSwept !== "boolean") s.everCleanSwept = false;
+    if(!Array.isArray(s.unlocked)) s.unlocked = [];
     // Mark already-completed tasks so re-checking them can't inflate the count.
     day.doing.forEach(t => { if(t.done) t.starred = true; });
     return s;
@@ -1278,6 +1503,12 @@
   const goalInput = document.getElementById("goal-input");
   const ringSmall = document.getElementById("ring-small");
   const universeCount = document.getElementById("universe-count");
+  const rankName = document.getElementById("rank-name");
+  const rankProgressText = document.getElementById("rank-progress-text");
+  const rankBar = document.getElementById("rank-bar");
+  const rankBarFill = document.getElementById("rank-bar-fill");
+  const streakChip = document.getElementById("streak-chip");
+  const streakNum = document.getElementById("streak-num");
   const doingCount = document.getElementById("doing-count");
   const notdoingCount = document.getElementById("notdoing-count");
   const bonusRule = document.getElementById("bonus-rule");
@@ -1306,6 +1537,7 @@
     const allDone = day.doing.length > 0 && day.doing.every(i => i.done);
     if(hadSetAsides && allDone && day.notDoing.length === 0){
       day.bonusAwarded = true;
+      state.everCleanSwept = true;
     }
   }
 
@@ -1449,6 +1681,22 @@
     const pts = todayPoints();
     const goal = state.goal;
     const goalMet = pts >= goal && goal > 0;
+
+    // Streak: reaching your daily goal on consecutive days.
+    if(goalMet && state.lastGoalDate !== today){
+      if(state.lastGoalDate && daysBetween(state.lastGoalDate, today) === 1) state.goalStreak += 1;
+      else state.goalStreak = 1;
+      state.lastGoalDate = today;
+      state.bestStreak = Math.max(state.bestStreak, state.goalStreak);
+      save();
+    }
+    // Current streak is "alive" only if the last goal-day was today or yesterday.
+    let streak = 0;
+    if(state.lastGoalDate){
+      const gap = daysBetween(state.lastGoalDate, today);
+      streak = (gap <= 1) ? state.goalStreak : 0;
+    }
+
     pointsNum.textContent = pts;
     goalDisplay.textContent = goal;
     ringSmall.textContent = "of " + goal + " pts";
@@ -1456,6 +1704,7 @@
     galaxy.goal = goal;
     galaxy.frac = Math.min(1, goal ? pts / goal : 0);
     galaxy.goalMet = goalMet;
+    galaxy.streak = streak;
     pointsCaption.textContent = day.bonusAwarded
       ? "Clean sweep! +" + PTS_BONUS + " bonus earned"
       : (goalMet ? "Daily goal reached — nicely done" : "Points earned today");
@@ -1463,8 +1712,73 @@
 
     const lifetime = lifetimeStars();
     universeCount.textContent = lifetime === 0
-      ? "Complete a task to light your first star"
-      : lifetime === 1 ? "1 star in your universe" : lifetime.toLocaleString() + " stars in your universe";
+      ? "Light your first star"
+      : lifetime === 1 ? "1 star" : lifetime.toLocaleString() + " stars";
+
+    // Rank / era progression
+    const rank = rankInfo(lifetime);
+    galaxy.rankLevel = rank.level;
+    rankName.textContent = rank.name;
+    if(rank.next){
+      rankProgressText.textContent = rank.toNext + " to " + rank.next;
+      rankBarFill.style.width = Math.round(rank.frac * 100) + "%";
+      rankBar.style.display = "";
+    } else {
+      rankProgressText.textContent = "Max era reached";
+      rankBarFill.style.width = "100%";
+    }
+
+    // Streak chip
+    if(streak > 0){
+      streakChip.style.display = "";
+      streakChip.classList.toggle("hot", streak >= 3);
+      streakNum.textContent = streak;
+    } else {
+      streakChip.style.display = "none";
+    }
+
+    updateMilestones();
+  }
+
+  function updateMilestones(){
+    const shelf = document.getElementById("milestone-shelf");
+    if(!shelf) return;
+    const newlyUnlocked = [];
+    MILESTONES.forEach(m => {
+      if(m.test(state) && !state.unlocked.includes(m.id)){
+        state.unlocked.push(m.id);
+        newlyUnlocked.push(m);
+      }
+    });
+    if(newlyUnlocked.length){ save(); newlyUnlocked.forEach(showMilestoneToast); }
+
+    shelf.innerHTML = "";
+    const unlockedCount = MILESTONES.filter(m => state.unlocked.includes(m.id)).length;
+    document.getElementById("milestone-count").textContent = unlockedCount + " / " + MILESTONES.length;
+    MILESTONES.forEach(m => {
+      const done = state.unlocked.includes(m.id);
+      const badge = document.createElement("div");
+      badge.className = "milestone" + (done ? " earned" : "");
+      badge.setAttribute("tabindex", "0");
+      badge.setAttribute("role", "listitem");
+      badge.setAttribute("aria-label", m.name + (done ? " — unlocked. " : " — locked. ") + m.desc);
+      badge.innerHTML =
+        '<span class="m-star" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7z"/></svg></span>' +
+        '<span class="m-name">' + escapeHtml(m.name) + '</span>' +
+        '<span class="m-desc">' + escapeHtml(m.desc) + '</span>';
+      shelf.appendChild(badge);
+    });
+  }
+
+  let toastTimer = null;
+  function showMilestoneToast(m){
+    const toast = document.getElementById("milestone-toast");
+    if(!toast) return;
+    toast.querySelector(".mt-name").textContent = m.name;
+    toast.querySelector(".mt-desc").textContent = m.desc;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 3600);
   }
 
   function buildMenu(itemId, actions){
@@ -1987,14 +2301,23 @@
     }
 
     function drawCore(cx, cy, minDim, t){
-      const pulse = reduce ? 1 : 1 + Math.sin(t*1.4)*0.05;
-      const R = minDim * 0.13 * pulse;
+      // Core grows with rank; a hot streak makes it flicker and burn warmer.
+      const rankBoost = 1 + Math.min(galaxy.rankLevel, 6) * 0.05;
+      const streak = galaxy.streak || 0;
+      const flick = (!reduce && streak >= 3) ? Math.sin(t*7)*0.03 + Math.sin(t*3.3)*0.02 : 0;
+      const pulse = reduce ? 1 : 1 + Math.sin(t*1.4)*0.05 + flick;
+      const R = minDim * 0.12 * rankBoost * pulse;
       const met = galaxy.goalMet;
       const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R*2.6);
       if(met){
-        glow.addColorStop(0, "rgba(240,205,120,0.85)");
-        glow.addColorStop(0.42, "rgba(233,180,76,0.45)");
+        glow.addColorStop(0, "rgba(240,205,120,0.9)");
+        glow.addColorStop(0.42, "rgba(233,180,76,0.5)");
         glow.addColorStop(1, "rgba(233,180,76,0)");
+      } else if(streak >= 3){
+        // burning streak: warm violet-to-amber core
+        glow.addColorStop(0, "rgba(255,190,130,0.85)");
+        glow.addColorStop(0.42, "rgba(196,90,180,0.4)");
+        glow.addColorStop(1, "rgba(124,58,237,0)");
       } else {
         glow.addColorStop(0, "rgba(160,128,236,0.85)");
         glow.addColorStop(0.42, "rgba(124,58,237,0.42)");
