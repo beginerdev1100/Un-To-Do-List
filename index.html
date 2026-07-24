@@ -1731,19 +1731,30 @@
     setTimeout(() => { btn.textContent = original; }, 1800);
   }
 
-  if(!(window.claude && window.claude.downloads)){
-    exportBtn.hidden = true;
-  }
   exportBtn.addEventListener("click", () => {
-    if(!(window.claude && window.claude.downloads)) return;
     const payload = JSON.stringify({ app: "un-to-do", version: 3, exported: new Date().toISOString(), state }, null, 2);
-    window.claude.downloads.save({ filename: "un-to-do-backup.json", data: payload })
-      .then(() => flashBtn(exportBtn, "Saved!"))
-      .catch(err => {
-        if(err && err.code === "declined") return;
-        if(err && err.code === "rate_limited"){ flashBtn(exportBtn, "Try again"); return; }
-        flashBtn(exportBtn, "Unavailable");
-      });
+    if(window.claude && window.claude.downloads){
+      // Claude artifact runtime: sanctioned download prompt
+      window.claude.downloads.save({ filename: "un-to-do-backup.json", data: payload })
+        .then(() => flashBtn(exportBtn, "Saved!"))
+        .catch(err => {
+          if(err && err.code === "declined") return;
+          if(err && err.code === "rate_limited"){ flashBtn(exportBtn, "Try again"); return; }
+          flashBtn(exportBtn, "Unavailable");
+        });
+      return;
+    }
+    // Everywhere else (e.g. GitHub Pages): standard browser download
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "un-to-do-backup.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    flashBtn(exportBtn, "Saved!");
   });
 
   importBtn.addEventListener("click", () => importFile.click());
